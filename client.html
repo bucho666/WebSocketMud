@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Mud Client</title>
+<style>
+
+html,body,#output,#message {
+  background-color: black;
+  color: silver;
+  font-size: 14px;
+  width:99%;
+}
+
+html,body {
+  position: relative;
+  height:98%;
+}
+
+#output,#message {
+  position: absolute;
+  margin: auto;
+  font-family: 'Courier New';
+  border: groove 2px silver;
+}
+
+#output {
+  top: 0px;
+  bottom: 24px;
+  overflow-y: auto;
+  line-height: 100%;
+}
+
+#message {
+  height:16px;
+  bottom:0px;
+}
+
+</style>
+</head>
+<body>
+<form id="form">
+<div id="output"></div>
+<input type="text" id="message">
+</form>
+<script>
+var inputBox = document.getElementById("message");
+var output = document.getElementById("output");
+var form = document.getElementById("form");
+function write_log(message, color){
+  var message_color = color || "Silver";
+  var p = document.createElement("span");
+  p.innerHTML = message
+  p.style.color = message_color;
+  output.appendChild(p);
+  output.scrollTop = output.scrollHeight;
+}
+
+try {
+  var host = "ws://localhost:7001/";
+  console.log("Host:", host);
+  var s = new WebSocket(host);
+  // 接続開始処理
+  s.onopen = function (e) {
+    write_log("サーバとの接続が完了しました。", "green");
+  };
+  // 切断処理 
+  s.onclose = function (e) {
+    write_log("<br>サーバから切断されました。", "maroon");
+  };
+  // メッセージ受信処理
+  s.onmessage = function (e) {
+    write_log(e.data);
+  };
+  // 接続エラー処理
+  s.onerror = function (e) {
+    write_log("<br>通信エラー。", "maroon");
+  };
+} catch (ex) {
+  console.log("<br>例外エラー。" + ex, "maroon");
+}
+// submit処理
+form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    s.send(inputBox.value);
+    write_log(inputBox.value, "yellow");
+    inputBox.value = "";
+    }, false)
+</script>
+</body>
+</html>
