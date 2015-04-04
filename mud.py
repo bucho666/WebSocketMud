@@ -117,7 +117,29 @@ class ChoiceColorHandler(object):
       self.enter()
       return
     self._user.change_name_color(choose_color)
-    UserHandlers.set_handler(self._user, ChatHandler(self._user))
+    UserHandlers.set_handler(self._user, ConfirmHandler(self._user))
+
+class ConfirmHandler(object):
+  def __init__(self, user):
+    self._user = user
+
+  def enter(self):
+    message = Message('\nこの名前と色でよろしいですか？', 'white').add('(yes/no)\n', 'yellow');
+    message.add('%s\n' % self._user.name(), self._user.name_color()).add('\n')
+    self._user.send(message)
+
+  def leave(self):
+    pass
+
+  def handle(self, message):
+    if message == 'yes':
+      UserHandlers.set_handler(self._user, ChatHandler(self._user))
+      return
+    if message == 'no':
+      self._user.rename('')
+      UserHandlers.set_handler(self._user, LoginHandler(self._user))
+      return
+    self.enter()
 
 class ChatHandler(object):
   def __init__(self, user):
