@@ -26,9 +26,19 @@ class MudService(object):
 
   def enter(self, socket):
     new_user = User(socket, self.DEFAULT_PROMPT)
+    self._send_title(new_user)
     UserDB.add(socket, new_user)
     UserHandlers.set_handler(new_user, LoginHandler(new_user))
     UserDB.flush_send_buffer()
+
+  def _send_title(self, user):
+    message = Message('\n')
+    message.add('  ****************************** \n', 'yellow')
+    message.add(' *                              * \n', 'yellow')
+    message.add('*  Welcome to the Fantasy World  *\n', 'yellow')
+    message.add(' *                              * \n', 'yellow')
+    message.add('  ****************************** \n\n\n', 'yellow')
+    user.send(message);
 
   def leave(self, socket):
     user = UserDB.find_by_socket(socket)
@@ -51,7 +61,7 @@ class LoginHandler(object):
     self._user = user
 
   def enter(self):
-    self._user.send(Message("名前を入力してください\n", 'white'));
+    self._user.send(Message('\n名前を入力してください。\n', 'white'));
 
   def handle(self, message):
     name = message
@@ -90,7 +100,7 @@ class ChoiceColorHandler(object):
     self._user = user
 
   def enter(self):
-    self._user.send(Message("名前の色を選択してください\n", 'white'));
+    self._user.send(Message("\n名前の色を選択してください。\n", 'white'));
     for num, color in enumerate(self._colors):
       color_tag = '%s ' % color
       self._user.send(Message(color_tag.ljust(8), color))
