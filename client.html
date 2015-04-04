@@ -84,7 +84,7 @@ form.addEventListener("submit", function (e) {
     e.preventDefault();
     s.send(inputBox.value);
     write_log(inputBox.value, "yellow");
-    inputBox.value = "";
+    inputBox.select(0, inputBox.value.length);
     }, false)
 </script>
 </body>
