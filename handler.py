@@ -95,39 +95,37 @@ class ConfirmHandler(object):
 class MudHandler(object):
   def __init__(self, avatar):
     self._avatar = avatar
-    self._start_room = RoomDB.find_by_id(0)
+    self._in_room = RoomDB.find_by_id(0)
 
   def enter(self):
-    self._start_room.add_avatar(self._avatar)
-    in_room = RoomDB.find_by_avatar(self._avatar)
-    self._avatar.send(Message('[%s]\n' % in_room.name(), 'white'))
-    self._send_all(Message(self._avatar.name(), self._avatar.name_color()).add(' が入室しました。', 'olive'))
+    self._in_room.add_avatar(self._avatar)
+    self._avatar.send(Message('[%s]\n' % self._in_room.name(), 'white'))
+    self._in_room.send_all(Message(self._avatar.name(), self._avatar.name_color()).add(' が入室しました。\n', 'olive'))
 
   def leave(self):
-    in_room = RoomDB.find_by_avatar(self._avatar)
-    self._send_all(Message(self._avatar.name(), self._avatar.name_color()).add(' が退室しました。', 'olive'))
-    in_room.remove_avatar(self._avatar)
+    self._update_in_room()
+    self._in_room.send_all(Message(self._avatar.name(), self._avatar.name_color()).add(' が退室しました。\n', 'olive'))
+    self._in_room.remove_avatar(self._avatar)
 
   def handle(self, message):
+    self._update_in_room()
     if message == 'who':
       self._send_avatar_list()
     else:
-      self._send_all(Message(self._avatar.name(), self._avatar.name_color()).add(': ').add(message)) 
+      self._in_room.send_all(Message(self._avatar.name(), self._avatar.name_color()).add(': ').add(message).add('\n'))
 
   def _send_avatar_list(self):
-    in_room = RoomDB.find_by_avatar(self._avatar)
+    self._update_in_room()
     message = Message("avatar list:\n", 'white')
-    for num, avatar in enumerate(in_room.avatars()):
+    for num, avatar in enumerate(self._in_room.avatars()):
       message.add(avatar.name().ljust(8), avatar.name_color())
       if num % 4 == 3:
         message.add('\n')
     message.add('\n')
     self._avatar.send(message)
 
-  def _send_all(self, message):
-    in_room = RoomDB.find_by_avatar(self._avatar)
-    message.add('\n')
-    in_room.send_all(message)
+  def _update_in_room(self):
+    self._in_room = RoomDB.find_by_avatar(self._avatar)
 
 class AvatarHandlers(object):
   _handler = dict()
