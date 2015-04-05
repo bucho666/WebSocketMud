@@ -12,3 +12,8 @@ class Message(object):
     string = ''.join(['<font color=%s>%s</font>' % (color, message.replace(' ', '&nbsp;'))\
         for (message, color) in self._messages])
     return string.replace('\n', '<br>')
+
+  def __add__(self, other):
+    result = Message('')
+    result._messages = self._messages + other._messages
+    return result
