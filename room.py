@@ -51,6 +51,9 @@ class Room(object):
   def users(self):
     return list(self._users)
 
+  def in_user(self, user):
+    return user in self._users
+
 if __name__ == '__main__':
   import unittest
 
@@ -60,7 +63,9 @@ if __name__ == '__main__':
       self._room_a = Room('test room A', 0)
       self._room_b = Room('test room A', 1)
       self._direction = 'north'
+      self._user = object()
       self._room_a.connect(self._room_b, self._direction)
+      self._room_a.add_user(self._user)
 
     def testConnectRoom(self):
       self.assertEqual(self._room_a.next_room(self._direction), self._room_b)
@@ -70,6 +75,13 @@ if __name__ == '__main__':
 
     def testNoExistsExit(self):
       self.assertFalse(self._room_a.exists_exit('south'))
+
+    def testInUser(self):
+      self.assertTrue(self._room_a.in_user(self._user))
+
+    def testNotInUser(self):
+      self.assertFalse(self._room_b.in_user(self._user))
+      self.assertFalse(self._room_a.in_user(object()))
 
   unittest.main()
 
