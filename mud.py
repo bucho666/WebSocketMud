@@ -11,7 +11,7 @@ from handler import LoginHandler
 class MudService(object):
   DEFAULT_PROMPT = Message('> ', 'white')
   def __init__(self):
-    RoomDB.add(Room('村の広場', 0))
+    Room('村の広場', 0).connect(Room('洞窟の入り口', 1), '東')
 
   def enter(self, socket):
     new_user = User(socket, self.DEFAULT_PROMPT)
