@@ -12,9 +12,13 @@ class RoomDB(object):
     return cls._rooms[room_id]
 
 class Room(object):
-  def __init__(self, object_id=0):
+  def __init__(self, name, object_id):
     self._object_id = object_id
+    self._name = name
     self._users = []
+
+  def name(self):
+    return self._name
 
   def object_id(self):
     return self._object_id

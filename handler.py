@@ -99,6 +99,7 @@ class ChatHandler(object):
 
   def enter(self):
     self._room.add_user(self._user)
+    self._user.send(Message('[%s]\n' % self._room.name(), 'white'))
     self._send_all(Message(self._user.name(), self._user.name_color()).add(' が入室しました。', 'olive'))
 
   def leave(self):
