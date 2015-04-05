@@ -4,6 +4,10 @@ class RoomDB(object):
   _rooms = dict()
 
   @classmethod
+  def clear(cls):
+    cls._rooms = dict()
+
+  @classmethod
   def add(cls, room):
     cls._rooms[room.object_id()] = room
 
@@ -16,6 +20,16 @@ class Room(object):
     self._object_id = object_id
     self._name = name
     self._users = []
+    self._exits = dict()
+
+  def connect(self, room, direction):
+    self._exits[direction] = room.object_id()
+
+  def next_room(self, direction):
+    return RoomDB.find_by_id(self._exits[direction])
+
+  def exists_exit(self, direction):
+    return direction in self._exits
 
   def name(self):
     return self._name
@@ -35,3 +49,28 @@ class Room(object):
 
   def users(self):
     return list(self._users)
+
+if __name__ == '__main__':
+  import unittest
+
+  class RoomTest(unittest.TestCase):
+    def setUp(self):
+      self._room_a = Room('test room A', 0)
+      self._room_b = Room('test room A', 1)
+      self._direction = 'north'
+      self._room_a.connect(self._room_b, self._direction)
+      RoomDB.clear()
+      RoomDB.add(self._room_a)
+      RoomDB.add(self._room_b)
+
+    def testConnectRoom(self):
+      self.assertEqual(self._room_a.next_room(self._direction), self._room_b)
+
+    def testExistsExit(self):
+      self.assertTrue(self._room_a.exists_exit(self._direction))
+
+    def testNoExistsExit(self):
+      self.assertFalse(self._room_a.exists_exit('south'))
+
+  unittest.main()
+
