@@ -21,6 +21,7 @@ class Room(object):
     self._name = name
     self._users = []
     self._exits = dict()
+    RoomDB.add(self)
 
   def connect(self, room, direction):
     self._exits[direction] = room.object_id()
@@ -55,13 +56,11 @@ if __name__ == '__main__':
 
   class RoomTest(unittest.TestCase):
     def setUp(self):
+      RoomDB.clear()
       self._room_a = Room('test room A', 0)
       self._room_b = Room('test room A', 1)
       self._direction = 'north'
       self._room_a.connect(self._room_b, self._direction)
-      RoomDB.clear()
-      RoomDB.add(self._room_a)
-      RoomDB.add(self._room_b)
 
     def testConnectRoom(self):
       self.assertEqual(self._room_a.next_room(self._direction), self._room_b)
