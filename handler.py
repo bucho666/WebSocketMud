@@ -95,16 +95,18 @@ class ConfirmHandler(object):
 class ChatHandler(object):
   def __init__(self, user):
     self._user = user
-    self._room = RoomDB.find_by_id(0)
+    self._start_room = RoomDB.find_by_id(0)
 
   def enter(self):
-    self._room.add_user(self._user)
-    self._user.send(Message('[%s]\n' % self._room.name(), 'white'))
+    self._start_room.add_user(self._user)
+    in_room = RoomDB.find_by_user(self._user)
+    self._user.send(Message('[%s]\n' % in_room.name(), 'white'))
     self._send_all(Message(self._user.name(), self._user.name_color()).add(' が入室しました。', 'olive'))
 
   def leave(self):
-    self._room.remove_user(self._user)
+    in_room = RoomDB.find_by_user(self._user)
     self._send_all(Message(self._user.name(), self._user.name_color()).add(' が退室しました。', 'olive'))
+    in_room.remove_user(self._user)
 
   def handle(self, message):
     if message == 'who':
@@ -113,8 +115,9 @@ class ChatHandler(object):
       self._send_all(Message(self._user.name(), self._user.name_color()).add(': ').add(message)) 
 
   def _send_user_list(self):
+    in_room = RoomDB.find_by_user(self._user)
     message = Message("user list:\n", 'white')
-    for num, user in enumerate(self._room.users()):
+    for num, user in enumerate(in_room.users()):
       message.add(user.name().ljust(8), user.name_color())
       if num % 4 == 3:
         message.add('\n')
@@ -122,8 +125,9 @@ class ChatHandler(object):
     self._user.send(message)
 
   def _send_all(self, message):
+    in_room = RoomDB.find_by_user(self._user)
     message.add('\n')
-    self._room.send_all(message)
+    in_room.send_all(message)
 
 class UserHandlers(object):
   _handler = dict()
