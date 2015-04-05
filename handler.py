@@ -84,7 +84,7 @@ class ConfirmHandler(object):
 
   def handle(self, message):
     if message == 'yes':
-      AvatarHandlers.set_handler(self._avatar, ChatHandler(self._avatar))
+      AvatarHandlers.set_handler(self._avatar, MudHandler(self._avatar))
       return
     if message == 'no':
       self._avatar.rename('')
@@ -92,7 +92,7 @@ class ConfirmHandler(object):
       return
     self.enter()
 
-class ChatHandler(object):
+class MudHandler(object):
   def __init__(self, avatar):
     self._avatar = avatar
     self._start_room = RoomDB.find_by_id(0)
