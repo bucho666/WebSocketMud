@@ -112,9 +112,7 @@ class MudHandler(object):
     if message == 'who':
       self._send_avatar_list()
     elif message == '移動':
-      self._in_room.remove_avatar(self._avatar)
-      next_room = self._in_room.next_room('東')
-      next_room.add_avatar(self._avatar)
+      self._in_room.move_avatar(self._avatar, '東')
       self._update_in_room()
       self._avatar.send(Message('[%s]\n' % self._in_room.name(), 'white'))
     else:
