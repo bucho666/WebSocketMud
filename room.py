@@ -15,6 +15,12 @@ class RoomDB(object):
   def find_by_id(cls, room_id):
     return cls._rooms[room_id]
 
+  @classmethod
+  def find_by_user(cls, user):
+    for room in cls._rooms.values():
+      if room.in_user(user): return room
+    return None
+
 class Room(object):
   def __init__(self, name, object_id):
     self._object_id = object_id
@@ -57,6 +63,23 @@ class Room(object):
 if __name__ == '__main__':
   import unittest
 
+  class RoomDBTest(unittest.TestCase):
+    def setUp(self):
+      RoomDB.clear()
+      self._room_a = Room('test room A', 0)
+      self._user_a = object()
+      self._room_a.add_user(self._user_a)
+      self._room_b = Room('test room B', 1)
+      self._user_b = object()
+      self._room_b.add_user(self._user_b)
+
+    def testFindByUser(self):
+      self.assertEqual(RoomDB.find_by_user(self._user_a), self._room_a)
+      self.assertEqual(RoomDB.find_by_user(self._user_b), self._room_b)
+
+    def testFindByUserNotExists(self):
+      self.assertEqual(RoomDB.find_by_user(object()), None)
+
   class RoomTest(unittest.TestCase):
     def setUp(self):
       RoomDB.clear()
@@ -84,4 +107,3 @@ if __name__ == '__main__':
       self.assertFalse(self._room_a.in_user(object()))
 
   unittest.main()
-
