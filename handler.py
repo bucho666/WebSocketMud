@@ -98,9 +98,9 @@ class MudHandler(object):
     self._in_room = RoomDB.find_by_id(0)
 
   def enter(self):
+    self._in_room.send_all(Message(self._avatar.name(), self._avatar.name_color()).add(' が入室しました。\n', 'olive'))
     self._in_room.add_avatar(self._avatar)
     LookCommand(self._avatar)()
-    self._in_room.send_all(Message(self._avatar.name(), self._avatar.name_color()).add(' が入室しました。\n', 'olive'))
 
   def leave(self):
     self._update_in_room()
@@ -109,25 +109,13 @@ class MudHandler(object):
 
   def handle(self, message):
     self._update_in_room()
-    if message == 'who':
-      self._send_avatar_list()
-    elif message == '移動':
+    if message == '移動':
       self._in_room.move_avatar(self._avatar, '東')
       LookCommand(self._avatar)()
     elif message == '見る':
       LookCommand(self._avatar)()
     else:
       self._in_room.send_all(Message(self._avatar.name(), self._avatar.name_color()).add(': ').add(message).add('\n'))
-
-  def _send_avatar_list(self):
-    self._update_in_room()
-    message = Message("avatar list:\n", 'white')
-    for num, avatar in enumerate(self._in_room.avatars()):
-      message.add(avatar.name().ljust(8), avatar.name_color())
-      if num % 4 == 3:
-        message.add('\n')
-    message.add('\n')
-    self._avatar.send(message)
 
   def _update_in_room(self):
     self._in_room = RoomDB.find_by_avatar(self._avatar)
@@ -142,7 +130,23 @@ class LookCommand(object):
     self._action(arg)
 
   def _action(self, arg):
-    self._avatar.send(Message('[%s]\n' % self._in_room.name(), 'white'))
+    message = Message('[%s]\n' % self._in_room.name(), 'white');
+    other_character_list = self._other_character_list()
+    if other_character_list:
+      message += self._character_list_message(other_character_list)
+    self._avatar.send(message)
+
+  def _other_character_list(self):
+    return [avatar for avatar in self._in_room.avatars() if avatar != self._avatar]
+
+  def _character_list_message(self, character_list):
+    message = Message("ここには、\n", 'white')
+    for num, avatar in enumerate(character_list):
+      message.add(avatar.name().ljust(8), avatar.name_color())
+      if num % 4 == 3:
+        message.add('\n')
+    message.add('がいる。\n')
+    return message
 
   def _update_in_room(self):
     self._in_room = RoomDB.find_by_avatar(self._avatar)
