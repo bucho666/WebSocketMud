@@ -109,13 +109,42 @@ class MudHandler(object):
 
   def handle(self, message):
     self._update_in_room()
-    if message == '移動':
-      self._in_room.move_avatar(self._avatar, '東')
-      LookCommand(self._avatar)()
+    if message.startswith('移動 '):
+      # self._in_room.move_avatar(self._avatar, '東')
+      # LookCommand(self._avatar)()
+      MoveCommand(self._avatar)(message)
     elif message == '見る':
       LookCommand(self._avatar)()
     else:
       self._in_room.send_all(Message(self._avatar.name(), self._avatar.name_color()).add(': ').add(message).add('\n'))
+
+  def _update_in_room(self):
+    self._in_room = RoomDB.find_by_avatar(self._avatar)
+
+class MoveCommand(object):
+  directions = ('東','西','南','北')
+  def __init__(self, avatar):
+    self._avatar = avatar
+    self._in_room = None
+
+  def __call__(self, arg=''):
+    self._update_in_room()
+    self._action(arg)
+
+  def _action(self, arg):
+    tokens = arg.split(' ')
+    if len(tokens) != 2:
+      self._avatar.send(Message('?', 'red'))
+      return
+    (command, direction) = tokens
+    if direction not in self.directions:
+      self._avatar.send(Message('方向を指定してください。\n', 'red'))
+      return
+    if not self._in_room.exists_exit(direction):
+      self._avatar.send(Message('そっちに道はない。\n', 'red'))
+      return
+    self._in_room.move_avatar(self._avatar, direction)
+    LookCommand(self._avatar)()
 
   def _update_in_room(self):
     self._in_room = RoomDB.find_by_avatar(self._avatar)
