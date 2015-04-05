@@ -16,16 +16,16 @@ class RoomDB(object):
     return cls._rooms[room_id]
 
   @classmethod
-  def find_by_user(cls, user):
+  def find_by_avatar(cls, avatar):
     for room in cls._rooms.values():
-      if room.in_user(user): return room
+      if room.in_avatar(avatar): return room
     return None
 
 class Room(object):
   def __init__(self, name, object_id):
     self._object_id = object_id
     self._name = name
-    self._users = []
+    self._avatars = []
     self._exits = dict()
     RoomDB.add(self)
 
@@ -44,21 +44,21 @@ class Room(object):
   def object_id(self):
     return self._object_id
 
-  def add_user(self, user):
-    self._users.append(user)
+  def add_avatar(self, avatar):
+    self._avatars.append(avatar)
 
-  def remove_user(self, user):
-    self._users.remove(user)
+  def remove_avatar(self, avatar):
+    self._avatars.remove(avatar)
 
   def send_all(self, message):
-    for user in self._users:
-      user.send(message)
+    for avatar in self._avatars:
+      avatar.send(message)
 
-  def users(self):
-    return list(self._users)
+  def avatars(self):
+    return list(self._avatars)
 
-  def in_user(self, user):
-    return user in self._users
+  def in_avatar(self, avatar):
+    return avatar in self._avatars
 
 if __name__ == '__main__':
   import unittest
@@ -67,18 +67,18 @@ if __name__ == '__main__':
     def setUp(self):
       RoomDB.clear()
       self._room_a = Room('test room A', 0)
-      self._user_a = object()
-      self._room_a.add_user(self._user_a)
+      self._avatar_a = object()
+      self._room_a.add_avatar(self._avatar_a)
       self._room_b = Room('test room B', 1)
-      self._user_b = object()
-      self._room_b.add_user(self._user_b)
+      self._avatar_b = object()
+      self._room_b.add_avatar(self._avatar_b)
 
-    def testFindByUser(self):
-      self.assertEqual(RoomDB.find_by_user(self._user_a), self._room_a)
-      self.assertEqual(RoomDB.find_by_user(self._user_b), self._room_b)
+    def testFindByAvatar(self):
+      self.assertEqual(RoomDB.find_by_avatar(self._avatar_a), self._room_a)
+      self.assertEqual(RoomDB.find_by_avatar(self._avatar_b), self._room_b)
 
-    def testFindByUserNotExists(self):
-      self.assertEqual(RoomDB.find_by_user(object()), None)
+    def testFindByAvatarNotExists(self):
+      self.assertEqual(RoomDB.find_by_avatar(object()), None)
 
   class RoomTest(unittest.TestCase):
     def setUp(self):
@@ -86,9 +86,9 @@ if __name__ == '__main__':
       self._room_a = Room('test room A', 0)
       self._room_b = Room('test room A', 1)
       self._direction = 'north'
-      self._user = object()
+      self._avatar = object()
       self._room_a.connect(self._room_b, self._direction)
-      self._room_a.add_user(self._user)
+      self._room_a.add_avatar(self._avatar)
 
     def testConnectRoom(self):
       self.assertEqual(self._room_a.next_room(self._direction), self._room_b)
@@ -99,11 +99,11 @@ if __name__ == '__main__':
     def testNoExistsExit(self):
       self.assertFalse(self._room_a.exists_exit('south'))
 
-    def testInUser(self):
-      self.assertTrue(self._room_a.in_user(self._user))
+    def testInAvatar(self):
+      self.assertTrue(self._room_a.in_avatar(self._avatar))
 
-    def testNotInUser(self):
-      self.assertFalse(self._room_b.in_user(self._user))
-      self.assertFalse(self._room_a.in_user(object()))
+    def testNotInAvatar(self):
+      self.assertFalse(self._room_b.in_avatar(self._avatar))
+      self.assertFalse(self._room_a.in_avatar(object()))
 
   unittest.main()

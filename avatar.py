@@ -1,44 +1,44 @@
 # -*- coding: utf-8 -*-
 from server import WebSocketServer
 
-class UserDB(object):
-  _users = dict()
+class AvatarDB(object):
+  _avatars = dict()
 
   @classmethod
-  def add(cls, socket, user):
-    cls._users[socket] = user
+  def add(cls, socket, avatar):
+    cls._avatars[socket] = avatar
 
   @classmethod
   def find_by_socket(cls, socket):
-    return cls._users[socket]
+    return cls._avatars[socket]
 
   @classmethod
   def find_by_name(cls, name):
-    matchs = [user for user in cls._users.values() if user.name() == name]
+    matchs = [avatar for avatar in cls._avatars.values() if avatar.name() == name]
     if not matchs: return None
     return matchs[0]
 
   @classmethod
   def remove_by_socket(cls, socket):
-    del cls._users[socket]
+    del cls._avatars[socket]
 
   @classmethod
   def flush_send_buffer(cls):
-    for user in cls._users.values():
-        user.flush()
+    for avatar in cls._avatars.values():
+        avatar.flush()
 
-class User(object):
+class Avatar(object):
   def __init__(self, socket, prompt):
-    self._name = UserName('', 'silver')
+    self._name = AvatarName('', 'silver')
     self._prompt = prompt
     self._socket = socket
     self._buffer = []
 
   def rename(self, name):
-    self._name = UserName(name, self._name.color())
+    self._name = AvatarName(name, self._name.color())
 
   def change_name_color(self, new_color):
-    self._name = UserName(str(self._name), new_color)
+    self._name = AvatarName(str(self._name), new_color)
 
   def name(self):
     return str(self._name)
@@ -55,7 +55,7 @@ class User(object):
     self._socket.send('<br>' + ''.join(self._buffer))
     self._buffer = []
 
-class UserName(object):
+class AvatarName(object):
   _INVALID_NAME_CHARACTER = u' 　!"#$%&\'()-=^~\\|@`[{;+:*]},<.>/?_'
   _NAME_MAX_LENGTH = 16
 
