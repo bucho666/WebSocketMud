@@ -26,17 +26,17 @@ class Room(object):
     self._object_id = object_id
     self._name = name
     self._avatars = []
-    self._exits = dict()
+    self._exit = dict()
     RoomDB.add(self)
 
   def connect(self, room, direction):
-    self._exits[direction] = room.object_id()
+    self._exit[direction] = room.object_id()
 
   def next_room(self, direction):
-    return RoomDB.find_by_id(self._exits[direction])
+    return RoomDB.find_by_id(self._exit[direction])
 
   def exists_exit(self, direction):
-    return direction in self._exits
+    return direction in self._exit
 
   def name(self):
     return self._name
@@ -59,6 +59,10 @@ class Room(object):
 
   def in_avatar(self, avatar):
     return avatar in self._avatars
+
+  def move_avatar(self, avatar, direction):
+    self.remove_avatar(avatar)
+    self.next_room(direction).add_avatar(avatar)
 
 if __name__ == '__main__':
   import unittest
@@ -105,5 +109,10 @@ if __name__ == '__main__':
     def testNotInAvatar(self):
       self.assertFalse(self._room_b.in_avatar(self._avatar))
       self.assertFalse(self._room_a.in_avatar(object()))
+
+    def testMoveAvatar(self):
+      self._room_a.move_avatar(self._avatar, self._direction)
+      self.assertFalse(self._room_a.in_avatar(self._avatar))
+      self.assertTrue(self._room_b.in_avatar(self._avatar))
 
   unittest.main()
