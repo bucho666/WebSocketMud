@@ -99,7 +99,7 @@ class MudHandler(object):
 
   def enter(self):
     self._in_room.add_avatar(self._avatar)
-    self._avatar.send(Message('[%s]\n' % self._in_room.name(), 'white'))
+    LookCommand(self._avatar)()
     self._in_room.send_all(Message(self._avatar.name(), self._avatar.name_color()).add(' が入室しました。\n', 'olive'))
 
   def leave(self):
@@ -113,8 +113,9 @@ class MudHandler(object):
       self._send_avatar_list()
     elif message == '移動':
       self._in_room.move_avatar(self._avatar, '東')
-      self._update_in_room()
-      self._avatar.send(Message('[%s]\n' % self._in_room.name(), 'white'))
+      LookCommand(self._avatar)()
+    elif message == '見る':
+      LookCommand(self._avatar)()
     else:
       self._in_room.send_all(Message(self._avatar.name(), self._avatar.name_color()).add(': ').add(message).add('\n'))
 
@@ -127,6 +128,21 @@ class MudHandler(object):
         message.add('\n')
     message.add('\n')
     self._avatar.send(message)
+
+  def _update_in_room(self):
+    self._in_room = RoomDB.find_by_avatar(self._avatar)
+
+class LookCommand(object):
+  def __init__(self, avatar):
+    self._avatar = avatar
+    self._in_room = None
+
+  def __call__(self, arg=''):
+    self._update_in_room()
+    self._action(arg)
+
+  def _action(self, arg):
+    self._avatar.send(Message('[%s]\n' % self._in_room.name(), 'white'))
 
   def _update_in_room(self):
     self._in_room = RoomDB.find_by_avatar(self._avatar)
