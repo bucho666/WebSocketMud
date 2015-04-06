@@ -28,22 +28,16 @@ class AvatarDB(object):
 
 class Avatar(object):
   def __init__(self, socket, prompt):
-    self._name = AvatarName('', 'silver')
+    self._name = AvatarName('')
     self._prompt = prompt
     self._socket = socket
     self._buffer = []
 
   def rename(self, name):
-    self._name = AvatarName(name, self._name.color())
-
-  def change_name_color(self, new_color):
-    self._name = AvatarName(str(self._name), new_color)
+    self._name = AvatarName(name)
 
   def name(self):
     return str(self._name)
-
-  def name_color(self):
-    return self._name.color()
 
   def send(self, message):
     self._buffer.append(str(message))
@@ -60,7 +54,6 @@ class AvatarName(object):
 
   def __init__(self, name, color='silver'):
     self._name = name
-    self._color = color
 
   def __str__(self):
     return self._name
@@ -75,6 +68,3 @@ class AvatarName(object):
     for ch in unicode(self._name, 'UTF-8'):
       if ch in self._INVALID_NAME_CHARACTER: return True
     return False
-
-  def color(self):
-    return self._color
