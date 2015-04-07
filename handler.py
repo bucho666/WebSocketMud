@@ -64,7 +64,10 @@ class MudHandler(object):
   def __init__(self, avatar):
     self._avatar = avatar
     self._in_room = RoomDB.find_by_id(0)
-
+    self._commands = (
+        MoveCommand(self._avatar),
+        LookCommand(self._avatar),
+        )
   def enter(self):
     self._in_room.send_all(Message(self._avatar.name(), 'yellow').add(' が入室しました。\n', 'olive'))
     self._in_room.add_avatar(self._avatar)
@@ -76,18 +79,16 @@ class MudHandler(object):
     self._in_room.remove_avatar(self._avatar)
 
   def handle(self, message):
-    self._update_in_room()
-    if MoveCommand.match(message):
-      MoveCommand(self._avatar)(message)
-    elif LookCommand.match(message):
-      LookCommand(self._avatar)(message)
-    else:
-      SayCommand(self._avatar)(message)
+    for command in self._commands:
+      if command.match(message):
+        command(message)
+        return
+    SayCommand(self._avatar)(message)
 
   def _update_in_room(self):
     self._in_room = RoomDB.find_by_avatar(self._avatar)
 
-class SayCommand(object):
+class AvatarCommand(object):
   def __init__(self, avatar):
     self._avatar = avatar
     self._in_room = None
@@ -97,22 +98,28 @@ class SayCommand(object):
     self._action(command)
 
   def _action(self, command):
-    if not command: return
-    self._in_room.send_all(Message(self._avatar.name(), 'white').add(': ').add(command).add('\n'))
+    pass
 
   def _update_in_room(self):
     self._in_room = RoomDB.find_by_avatar(self._avatar)
 
-class MoveCommand(object):
+  def match(self, command):
+    return False
+
+class SayCommand(AvatarCommand):
+  def __init__(self, avatar):
+    AvatarCommand.__init__(self, avatar)
+
+  def _action(self, command):
+    if not command: return
+    self._in_room.send_all(Message(self._avatar.name(), 'white').add(': ').add(command).add('\n'))
+
+class MoveCommand(AvatarCommand):
   directions = ('東','西','南','北')
   _command_re = re.compile('(.+)(に|へ)移動')
-  def __init__(self, avatar):
-    self._avatar = avatar
-    self._in_room = None
 
-  def __call__(self, command=''):
-    self._update_in_room()
-    self._action(command)
+  def __init__(self, avatar):
+    AvatarCommand.__init__(self, avatar)
 
   def _action(self, command):
     match = self._command_re.match(command)
@@ -129,21 +136,12 @@ class MoveCommand(object):
     self._in_room.move_avatar(self._avatar, direction)
     LookCommand(self._avatar)()
 
-  def _update_in_room(self):
-    self._in_room = RoomDB.find_by_avatar(self._avatar)
-
-  @classmethod
   def match(cls, command):
     return cls._command_re.match(command)
 
-class LookCommand(object):
+class LookCommand(AvatarCommand):
   def __init__(self, avatar):
-    self._avatar = avatar
-    self._in_room = None
-
-  def __call__(self, command=''):
-    self._update_in_room()
-    self._action(command)
+    AvatarCommand.__init__(self, avatar)
 
   def _action(self, command):
     message = Message('[%s]\n' % self._in_room.name(), 'white');
@@ -164,10 +162,6 @@ class LookCommand(object):
     message.add('がいる。\n', 'olive')
     return message
 
-  def _update_in_room(self):
-    self._in_room = RoomDB.find_by_avatar(self._avatar)
-
-  @classmethod
   def match(cls, command):
     return command == '見る'
 
