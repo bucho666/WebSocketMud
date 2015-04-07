@@ -79,10 +79,26 @@ class MudHandler(object):
     self._update_in_room()
     if MoveCommand.match(message):
       MoveCommand(self._avatar)(message)
-    elif message == '見る':
-      LookCommand(self._avatar)()
+    elif LookCommand.match(message):
+      LookCommand(self._avatar)(message)
     else:
-      self._in_room.send_all(Message(self._avatar.name(), 'white').add(': ').add(message).add('\n'))
+      SayCommand(self._avatar)(message)
+
+  def _update_in_room(self):
+    self._in_room = RoomDB.find_by_avatar(self._avatar)
+
+class SayCommand(object):
+  def __init__(self, avatar):
+    self._avatar = avatar
+    self._in_room = None
+
+  def __call__(self, command=''):
+    self._update_in_room()
+    self._action(command)
+
+  def _action(self, command):
+    if not command: return
+    self._in_room.send_all(Message(self._avatar.name(), 'white').add(': ').add(command).add('\n'))
 
   def _update_in_room(self):
     self._in_room = RoomDB.find_by_avatar(self._avatar)
@@ -94,7 +110,7 @@ class MoveCommand(object):
     self._avatar = avatar
     self._in_room = None
 
-  def __call__(self, command):
+  def __call__(self, command=''):
     self._update_in_room()
     self._action(command)
 
@@ -125,11 +141,11 @@ class LookCommand(object):
     self._avatar = avatar
     self._in_room = None
 
-  def __call__(self, arg=''):
+  def __call__(self, command=''):
     self._update_in_room()
-    self._action(arg)
+    self._action(command)
 
-  def _action(self, arg):
+  def _action(self, command):
     message = Message('[%s]\n' % self._in_room.name(), 'white');
     other_character_list = self._other_character_list()
     if other_character_list:
@@ -150,6 +166,10 @@ class LookCommand(object):
 
   def _update_in_room(self):
     self._in_room = RoomDB.find_by_avatar(self._avatar)
+
+  @classmethod
+  def match(cls, command):
+    return command == '見る'
 
 class AvatarHandlers(object):
   _handler = dict()
