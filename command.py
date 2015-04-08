@@ -2,6 +2,7 @@
 import re
 from room import RoomDB
 from message import Message
+from room import Direction
 
 class AvatarCommand(object):
   def __init__(self, avatar):
@@ -30,7 +31,6 @@ class SayCommand(AvatarCommand):
     self._in_room.send_all(Message(self._avatar.name(), 'white').add(': ').add(command).add('\n'))
 
 class MoveCommand(AvatarCommand):
-  directions = ('東','西','南','北')
   _command_re = re.compile('(.+)(に|へ)移動')
 
   def __init__(self, avatar):
@@ -42,7 +42,7 @@ class MoveCommand(AvatarCommand):
       self._avatar.send(Message('?', 'maroon'))
       return
     direction = match.group(1)
-    if direction not in self.directions:
+    if not Direction.name_is(direction):
       self._avatar.send(Message('方向を指定してください。\n', 'maroon'))
       return
     if not self._in_room.exists_exit(direction):
@@ -63,6 +63,9 @@ class LookCommand(AvatarCommand):
     other_character_list = self._other_character_list()
     if other_character_list:
       message += self._character_list_message(other_character_list)
+    exits = self._in_room.exits()
+    if exits:
+      message += self._exits_message(exits)
     self._avatar.send(message)
 
   def _other_character_list(self):
@@ -75,6 +78,12 @@ class LookCommand(AvatarCommand):
       if num % 4 == 3:
         message.add('\n')
     message.add('がいる。\n', 'olive')
+    return message
+
+  def _exits_message(self, exits):
+    message = Message('[出口]\n')
+    for direction, room_name in exits:
+      message.add('  %s: %s\n' % (direction, room_name))
     return message
 
   def match(cls, command):

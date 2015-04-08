@@ -21,6 +21,23 @@ class RoomDB(object):
       if room.in_avatar(avatar): return room
     return None
 
+class Direction(object):
+  _directions = ('東','西','南','北', '上', '下')
+
+  @classmethod
+  def names(cls):
+    return list(cls._directions)
+
+  @classmethod
+  def name_is(cls, name):
+    return name in cls._directions
+
+  @classmethod
+  def reverse(cls, direction):
+    index = cls._directions.index(direction)
+    index = index - 1 if index % 2 else index + 1
+    return cls._directions[index]
+
 class Room(object):
   def __init__(self, name, object_id):
     self._object_id = object_id
@@ -31,12 +48,21 @@ class Room(object):
 
   def connect(self, room, direction):
     self._exit[direction] = room.object_id()
+    room._exit[Direction.reverse(direction)] = self.object_id()
 
   def next_room(self, direction):
     return RoomDB.find_by_id(self._exit[direction])
 
   def exists_exit(self, direction):
     return direction in self._exit
+
+  def exits(self):
+    exits = []
+    for direction in Direction.names():
+      if not self.exists_exit(direction): continue
+      next_room = self.next_room(direction)
+      exits.append((direction, next_room.name()))
+    return exits
 
   def name(self):
     return self._name
@@ -89,19 +115,21 @@ if __name__ == '__main__':
       RoomDB.clear()
       self._room_a = Room('test room A', 0)
       self._room_b = Room('test room A', 1)
-      self._direction = 'north'
+      self._direction = '北'
       self._avatar = object()
       self._room_a.connect(self._room_b, self._direction)
       self._room_a.add_avatar(self._avatar)
 
     def testConnectRoom(self):
       self.assertEqual(self._room_a.next_room(self._direction), self._room_b)
+      reverse_direction = Direction.reverse(self._direction)
+      self.assertEqual(self._room_b.next_room(reverse_direction), self._room_a)
 
     def testExistsExit(self):
       self.assertTrue(self._room_a.exists_exit(self._direction))
 
     def testNoExistsExit(self):
-      self.assertFalse(self._room_a.exists_exit('south'))
+      self.assertFalse(self._room_a.exists_exit('南'))
 
     def testInAvatar(self):
       self.assertTrue(self._room_a.in_avatar(self._avatar))
@@ -114,5 +142,14 @@ if __name__ == '__main__':
       self._room_a.move_avatar(self._avatar, self._direction)
       self.assertFalse(self._room_a.in_avatar(self._avatar))
       self.assertTrue(self._room_b.in_avatar(self._avatar))
+
+  class DirectionTest(unittest.TestCase):
+    def testReverse(self):
+      self.assertEqual(Direction.reverse('東'), '西')
+      self.assertEqual(Direction.reverse('南'), '北')
+      self.assertEqual(Direction.reverse('上'), '下')
+      self.assertEqual(Direction.reverse('西'), '東')
+      self.assertEqual(Direction.reverse('北'), '南')
+      self.assertEqual(Direction.reverse('下'), '上')
 
   unittest.main()

@@ -52,7 +52,7 @@ class AvatarName(object):
   _INVALID_NAME_CHARACTER = u' 　!"#$%&\'()-=^~\\|@`[{;+:*]},<.>/?_'
   _NAME_MAX_LENGTH = 16
 
-  def __init__(self, name, color='silver'):
+  def __init__(self, name):
     self._name = name
 
   def __str__(self):
