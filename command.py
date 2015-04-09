@@ -63,7 +63,7 @@ class LookCommand(AvatarCommand):
     other_character_list = self._other_character_list()
     if other_character_list:
       message += self._character_list_message(other_character_list)
-    exits = self._in_room.exits()
+    exits = self._in_room.exits_list()
     if exits:
       message += self._exits_message(exits)
     self._avatar.send(message)

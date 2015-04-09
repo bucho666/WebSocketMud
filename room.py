@@ -21,6 +21,13 @@ class RoomDB(object):
       if room.in_avatar(avatar): return room
     return None
 
+  @classmethod
+  def save(cls, file_name):
+    fh = open(file_name, 'w')
+    for room_id, room in cls._rooms.items():
+      fh.write(str(room))
+    fh.close()
+
 class Direction(object):
   _directions = ('東','西','南','北', '上', '下')
 
@@ -61,6 +68,13 @@ class Room(object):
     for direction in Direction.names():
       if not self.exists_exit(direction): continue
       next_room = self.next_room(direction)
+      exits.append((direction, next_room.object_id()))
+    return exits
+
+  def exits_list(self):
+    exits = []
+    for (direction, next_room_id) in self.exits():
+      next_room = RoomDB.find_by_id(next_room_id)
       exits.append((direction, next_room.name()))
     return exits
 
@@ -89,6 +103,16 @@ class Room(object):
   def move_avatar(self, avatar, direction):
     self.remove_avatar(avatar)
     self.next_room(direction).add_avatar(avatar)
+
+  def __str__(self):
+    string = 'id:%d\nname:%s\n' % (self.object_id(), self.name())
+    for (direction, room_id) in self.exits():
+      string += 'exit:%s %d\n' % (direction, room_id)
+    return string + '~\n'
+
+  @classmethod
+  def build(cls):
+    return None
 
 if __name__ == '__main__':
   import unittest
@@ -142,6 +166,14 @@ if __name__ == '__main__':
       self._room_a.move_avatar(self._avatar, self._direction)
       self.assertFalse(self._room_a.in_avatar(self._avatar))
       self.assertTrue(self._room_b.in_avatar(self._avatar))
+
+    def testStr(self):
+      result  = 'id:0\n'
+      result += 'name:test room A\n'
+      result += 'exit:北 1\n'
+      result += '~\n'
+      self.assertEqual(str(self._room_a), result)
+
 
   class DirectionTest(unittest.TestCase):
     def testReverse(self):
